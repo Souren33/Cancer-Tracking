@@ -1,6 +1,8 @@
 """
-File Cancer API
-Description: API for interacting with the dataset of focus
+File title: Cancer_API
+Description: The API that mediates the data passing between the backend program and frontend dashboard interface
+Author: Souren Prakash, Kuan Chun Chiu, Atharva
+Date: 2024/10/10
 """
 
 import pandas as pd
@@ -19,7 +21,12 @@ class CANAPI:
        #print(self.can)
         return self.can
 
-
+    def clean_can(self):
+        self.can = self.can[["Diagnosis", "Age", "Sex", "Targeted Therapy"]]
+        self.can.columns = ["Diagnosis", "Age", "Gender", "Therapy"]
+        self.can["Therapy"] = self.can["Therapy"].apply(lambda x: x.replace("[", "").replace("]", "").split(",")[0])
+        self.can["Therapy"] = self.can["Therapy"].apply(lambda x: "No_therapy_listed" if x == "" else x)
+        return self.can
 
     def get_diagnosis(self):
         """
@@ -32,7 +39,17 @@ class CANAPI:
         diagnosis = can.Diagnosis.unique()
         return diagnosis
 
+    def get_gender(self):
+        can = self.can
+        can["Gender"] = can["Gender"].str.lower()
+        unique_gender = can["Gender"].unique()
+        return unique_gender
 
+    def get_therapy(self):
+        can = self.can
+        can["Therapy"] = can["Therapy"].str.lower()
+        unique_therapy = can["Therapy"].unique()
+        return unique_therapy
 
 
     def get_age(self):
@@ -52,7 +69,7 @@ class CANAPI:
     def format_ages(self, age_column):
 
         self.can[age_column]= self.can[age_column].astype(int)
-        return self
+        return self.can
 
 
 
@@ -67,16 +84,16 @@ class CANAPI:
         # Function to classify the age into different age ranges
         def classify_age(age):
             if age <= youngest_marker:
-                return "youngest age range"
+                return "youngest_age"
             elif youngest_marker < age <= middle_marker:
-                return "middle age range"
+                return "middle_age"
             elif age > middle_marker and age <= oldest_marker:
-                return "older middle age range"
+                return "older_middle_age"
             else:
-                return 'oldest age range'
+                return 'oldest_age'
 
         # Apply the classification function to create a new column 'age cat'
-        data['age cat'] = data['Age'].apply(classify_age)
+        data['age_cat'] = data['Age'].apply(classify_age)
 
         # Return the modified DataFrame
         return data
