@@ -1,4 +1,3 @@
-import ast
 """
 File title: Cancer_explore
 Description: The backend program that calls the API functions and connects to the panel dashboard
@@ -28,31 +27,75 @@ print (can_df.head(15))
 
 
 # Plot widgets
-width = pn.Widgets.IntSlider(name="Diagram width", start=250, end=2000, step=125, value=1500)
-height = pn.Widgets.IntSlider(name="Diagram height", start=200, end=2500, step=100, value=800)
+width = pn.widgets.IntSlider(name="Diagram width", start=250, end=2000, step=125, value=1500)
+height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=100, value=800)
 
 # Callback functions:
-def get_plot():
-    diagnosis = can_api.get_diagnosis()
-    gender = can_api.get_gender()
-    therapy = can_api.get_therapy()
-    can_api.format_ages()
+def get_plot(can_df, width, height):
+    diagnosis = can_df["Diagnosis"]
+    gender = can_df["Gender"]
+    therapy = can_df["Therapy"]
+    can_api.format_ages("Age")
     can_df = can_api.create_age_ranges()
-    age = can_df["age_cat"].unique()
-    fig = sk.multi_layer_sankey(can_df, diagnosis, gender, age, therapy, width=width, height=height)
+    age = can_df["age_cat"]
+    fig = sk.multi_layer_sankey(diagnosis, age, gender, therapy, width=width, height=height)
     return fig
 
+print (get_plot(can_df, width, height))
+
+"""
 def get_catalog():
+    pass
 
 
 
+# Callback bindings
+plot = get_plot(can_df)
+catalog = get_catalog()
 
 
+# Dashboard widgets card
+card_width = 320
+
+search_card = pn.Card(
+    pn.Column(
+        search_widget,
+        search_widget,
+        search_widget
+    ),
+    title="Search", width=card_width, collapsed=True
+)
+
+plot_card = pn.Card(
+    pn.Column(
+        width,
+        height
+    ),
+    title="Plot", width=card_width, collapsed=True
+)
+
+# Dashboard layout
+layout = pn.template.FastListTemplate(
+    title="The Diagnosis & Therapy Linkage Dashboard",
+    sidebar=[
+        search_card,
+        plot_card,
+    ],
+    theme_toggle=False,
+    main=[
+        pn.Tabs(
+            ("Network", plot),  # Replace None with callback binding
+            ("Associations", catalog),  # Replace None with callback binding
+            active=0   # Which tab is active by default?
+        )
+    ],
+    header_background='#a93226'
+).servable()
+
+layout.show()
 
 
-
-
-
+"""
 
 
 

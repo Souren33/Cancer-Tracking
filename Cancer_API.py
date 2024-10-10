@@ -28,29 +28,6 @@ class CANAPI:
         self.can["Therapy"] = self.can["Therapy"].apply(lambda x: "No_therapy_listed" if x == "" else x)
         return self.can
 
-    def get_diagnosis(self):
-        """
-        Getting unique diagnosis for sliders or focus
-        :return:
-        """
-
-        can = self.can
-        can.Diagnosis = can.Diagnosis.str.lower()
-        diagnosis = can.Diagnosis.unique()
-        return diagnosis
-
-    def get_gender(self):
-        can = self.can
-        can["Gender"] = can["Gender"].str.lower()
-        unique_gender = can["Gender"].unique()
-        return unique_gender
-
-    def get_therapy(self):
-        can = self.can
-        can["Therapy"] = can["Therapy"].str.lower()
-        unique_therapy = can["Therapy"].unique()
-        return unique_therapy
-
 
     def get_age(self):
         """

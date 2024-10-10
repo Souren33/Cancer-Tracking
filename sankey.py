@@ -28,7 +28,7 @@ def make_sankey(artist_df, source, target):
     fig = go.Figure(sk)
     return fig
 
-def multi_layer_sankey(can_df, source, inter_1, inter_2, target, **kwargs):
+def multi_layer_sankey(source, interm_1, interm_2, target, **kwargs):
     """
       Purpose: Create a 3 layers sankey diagram, given the source, intermediate, and target column names
       Parameter 1: artist_df, the grouped df with artist count
@@ -37,15 +37,14 @@ def multi_layer_sankey(can_df, source, inter_1, inter_2, target, **kwargs):
       Parameter 4: intermediate, the intermediate column name
       Return: N/A since there's no return() at the end of the function. Yet the sankey diagram is displayed.
     """
-    label = pd.concat([source, inter_1, inter_2, target])
-    source = source.apply(lambda x: label.index(x))
-    inter_1 = inter_1.apply(lambda x: label.index(x))
-    inter_2 = inter_2.apply(lambda x: label.index(x))
-    target = target.apply(lambda x: label.index(x))
-    value = 1 * len(can_df)
-    link = {"source": pd.concat([source, inter_1]),
-            "intermediate": pd.concat([inter_1, inter_2])
-            "target": pd.concat([inter_2, target]),
+    label = pd.concat([source, interm_1, interm_2, target]).unique().tolist()
+    value = [1] * len(list(source))
+    src = source.apply(lambda x: label.index(x))
+    inter_1 = interm_1.apply(lambda x: label.index(x))
+    inter_2 = interm_2.apply(lambda x: label.index(x))
+    targ = target.apply(lambda x: label.index(x))
+    link = {"source": pd.concat([src, inter_1]),
+            "target": pd.concat([inter_1, inter_2, targ]),
             "value": value}
     node = {"pad": 50, "thickness": 50, "label": label}
     sk = go.Sankey(link = link, node = node)
