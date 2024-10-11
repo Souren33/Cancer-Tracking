@@ -18,7 +18,6 @@ class CANAPI:
 
     def load_can(self, filename):
         self.can= pd.read_csv(filename)
-       #print(self.can)
         return self.can
 
     def clean_can(self):
@@ -28,53 +27,45 @@ class CANAPI:
         self.can["Therapy"] = self.can["Therapy"].apply(lambda x: "No_therapy_listed" if x == "" else x)
         return self.can
 
-
-    def get_age(self):
-        """
-        This method objective is to find the unique values for the age
-        This will be used later to create new age brackets, which in turn will be added to the data set
-        This new column will have a range in which the values fall so we can create a better, more complex sankey
-        :return:
-        """
-
-        can = self.can
-        can.Age = can.Age.astype(int)
-        unique_ages = can.Age.unique()
-        return unique_ages
-
-
-    def format_ages(self, age_column):
-
-        self.can[age_column]= self.can[age_column].astype(int)
-        return self.can
-
-
-
     def create_age_ranges(self):
-        data = self.can
+        self.can["Age"] = self.can["Age"].astype(int)
+        youngest_marker = self.can["Age"].quantile(0.25)
+        middle_marker = self.can["Age"].median()
+        oldest_marker = self.can["Age"].quantile(0.75)
 
-        # Calculate age quantiles based on the 'Age' column
-        youngest_marker = data["Age"].quantile(0.25)
-        oldest_marker = data["Age"].quantile(0.75)
-        middle_marker = data["Age"].median()
-
-        # Function to classify the age into different age ranges
         def classify_age(age):
             if age <= youngest_marker:
                 return "youngest_age"
-            elif youngest_marker < age <= middle_marker:
+            elif age > youngest_marker and age <= middle_marker:
                 return "middle_age"
             elif age > middle_marker and age <= oldest_marker:
                 return "older_middle_age"
             else:
-                return 'oldest_age'
+                return "oldest_age"
+        self.can["Age"] = self.can["Age"].apply(classify_age)
+        return self.can
 
-        # Apply the classification function to create a new column 'age cat'
-        data['age_cat'] = data['Age'].apply(classify_age)
-
-        # Return the modified DataFrame
-        return data
-
+    def group_df(self, group_list, min_patient_count):
+        """
+          Purpose: Group the df by two desired columns and add a artist_count column. Exclude rows where its artist_count
+                   value is less than 20
+          Parameter 1: artist_df, the filtered df
+          Parameter 2: group_list, the list of columns to group by
+          Return: artist_df, the df with artist count based on grouping the two entered columns
+        """
+        cancer_df = self.can
+        if len(group_list) == 2:
+            group_col1, group_col2 = group_list[0], group_list[1]
+            cancer_df = cancer_df.groupby([group_col1, group_col2]).size().reset_index(name="Patient_count")
+        elif len(group_list) == 3:
+            group_col1, group_col2, group_col3 = group_list[0], group_list[1], group_list[2]
+            cancer_df = cancer_df.groupby([group_col1, group_col2, group_col3]).size().reset_index(name="Patient_count")
+        elif len(group_list) == 4:
+            group_col1, group_col2, group_col3, group_col4 = group_list[0], group_list[1], group_list[2], group_list[3]
+            cancer_df = cancer_df.groupby([group_col1, group_col2,
+                                           group_col3, group_col4]).size().reset_index(name="Patient_count")
+        cancer_df = cancer_df[cancer_df["Patient_count"] >= min_patient_count]
+        return cancer_df
 
 def main():
 

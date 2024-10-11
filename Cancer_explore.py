@@ -19,49 +19,53 @@ can_api = CANAPI()
 # Load the cancer file
 can_df = can_api.load_can(file_name)
 can_df = can_api.clean_can()
+can_df = can_api.create_age_ranges()
+
 print (can_df.head(15))
 
 # Search widgets
-
-
-
+min_patient_count = pn.widgets.IntSlider(name="Min patient count", start=1, end=5, value=1)
+checkbox_group = pn.widgets.CheckBoxGroup(name="Sankey layer checkbox", value=["Age", "Gender"],
+                                          options=["Age", "Gender"], inline=True)
 
 # Plot widgets
 width = pn.widgets.IntSlider(name="Diagram width", start=250, end=2000, step=125, value=1500)
 height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=100, value=800)
 
 # Callback functions:
-def get_plot(can_df, width, height):
-    diagnosis = can_df["Diagnosis"]
-    gender = can_df["Gender"]
-    therapy = can_df["Therapy"]
-    can_api.format_ages("Age")
-    can_df = can_api.create_age_ranges()
-    age = can_df["age_cat"]
-    fig = sk.multi_layer_sankey(diagnosis, age, gender, therapy, width=width, height=height)
+def get_plot(min_patient_count, checkbox_group, width, height):
+    inter_layers = checkbox_group
+    if len(inter_layers) == 0:
+        group_list = ["Diagnosis", "Therapy"]
+        cancer_df = can_api.group_df(group_list, min_patient_count)
+        fig = sk.two_layer_sankey(cancer_df, "Diagnosis", "Therapy", width=width, height=height)
+    if len(inter_layers) == 1:
+        group_list = ["Diagnosis", inter_layers[0], "Therapy"]
+        cancer_df = can_api.group_df(group_list, min_patient_count)
+        fig = sk.three_layer_sankey(cancer_df, "Diagnosis", inter_layers[0], "Therapy",
+                                    width=width, height=height)
+    if len(inter_layers) == 2:
+        group_list = ["Diagnosis", inter_layers[0], inter_layers[1], "Therapy"]
+        cancer_df = can_api.group_df(group_list, min_patient_count)
+        fig = sk.four_layer_sankey(cancer_df, "Diagnosis", inter_layers[0], inter_layers[1], "Therapy",
+                                   width=width, height=height)
     return fig
 
-print (get_plot(can_df, width, height))
-
-"""
 def get_catalog():
     pass
 
 
 
 # Callback bindings
-plot = get_plot(can_df)
-catalog = get_catalog()
-
+plot = pn.bind(get_plot, min_patient_count, checkbox_group, width, height)
+# catalog = pn.bind(get_catalog)
 
 # Dashboard widgets card
 card_width = 320
-
 search_card = pn.Card(
     pn.Column(
-        search_widget,
-        search_widget,
-        search_widget
+        min_patient_count,
+        checkbox_group
     ),
     title="Search", width=card_width, collapsed=True
 )
@@ -85,7 +89,7 @@ layout = pn.template.FastListTemplate(
     main=[
         pn.Tabs(
             ("Network", plot),  # Replace None with callback binding
-            ("Associations", catalog),  # Replace None with callback binding
+            ("Associations", None),  # Replace None with callback binding
             active=0   # Which tab is active by default?
         )
     ],
@@ -93,19 +97,3 @@ layout = pn.template.FastListTemplate(
 ).servable()
 
 layout.show()
-
-
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
