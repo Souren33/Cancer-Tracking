@@ -45,13 +45,16 @@ width = pn.widgets.IntSlider(name="Diagram width", start=250, end=2000, step=125
 height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=100, value=800)
 
 
-# menu widgets
+# menu widget
+disease_list = can_api.get_disease()
 
-diesease_list = can_api.get_disease()
-
-menu_items = [('Disease', 'a'), ('Age', 'b'), ('Sex', 'c'), ('Treatment', 'd'), None, ('Help', 'help')]
+menu_items = [('Disease', 'Disease'), ('Age', 'Age'), ('Sex', 'Sex'), ('Treatment', 'Treatment')]
 menu_button = pn.widgets.MenuButton(name='Sorting Categories', items=menu_items, button_type='primary')
 pn.Column(menu_button, height=200)
+
+def handle_selection(clicked):
+    return f'You clicked menu item: "{clicked}"'
+
 
 # Callback functions:
 def get_plot(min_patient_count, checkbox_group, width, height):
@@ -60,6 +63,10 @@ def get_plot(min_patient_count, checkbox_group, width, height):
     cancer_df = can_api.group_df(group_list, min_patient_count)
     fig = multi_layer_sankey(cancer_df, *layers, width=width, height=height)
     return fig
+
+def get_plot_dropdown():
+    layers = [""]
+
 
 def get_catalog():
     pass
@@ -89,10 +96,14 @@ plot_card = pn.Card(
 Focus on menu drop down, main drop down lets the partition carry to any of the nodes 
 the second drop down allows the different unique values used in the sankey to sort by those items
 """
-menu_card = pn.Column(
+menu_card = pn.Card(
+    pn.Column(
     menu_button,
-    pn.widgets.Select(options = diesease_list),
+    pn.bind(handle_selection, menu_button.param.clicked),
+    pn.widgets.Select(options = disease_list),
     height=200
+    ),
+    title= "Dropdown", width=card_width, collapsed=True
 )
 # Dashboard layout
 layout = pn.template.FastListTemplate(
