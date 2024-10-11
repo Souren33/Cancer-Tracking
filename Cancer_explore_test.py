@@ -49,8 +49,8 @@ height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=1
 
 diesease_list = can_api.get_disease()
 
-menu_items = [('Option A', 'a'), ('Option B', 'b'), ('Option C', 'c'), None, ('Help', 'help')]
-menu_button = pn.widgets.MenuButton(name='Dropdown', items=menu_items, button_type='primary')
+menu_items = [('Disease', 'a'), ('Age', 'b'), ('Sex', 'c'), ('Treatment', 'd'), None, ('Help', 'help')]
+menu_button = pn.widgets.MenuButton(name='Sorting Categories', items=menu_items, button_type='primary')
 pn.Column(menu_button, height=200)
 
 # Callback functions:
@@ -84,7 +84,11 @@ plot_card = pn.Card(
     ),
     title="Plot", width=card_width, collapsed=True
 )
+"""
 
+Focus on menu drop down, main drop down lets the partition carry to any of the nodes 
+the second drop down allows the different unique values used in the sankey to sort by those items
+"""
 menu_card = pn.Column(
     menu_button,
     pn.widgets.Select(options = diesease_list),
