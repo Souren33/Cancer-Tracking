@@ -44,6 +44,15 @@ checkbox_group = pn.widgets.CheckBoxGroup(name="Sankey layer checkbox",
 width = pn.widgets.IntSlider(name="Diagram width", start=250, end=2000, step=125, value=1500)
 height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=100, value=800)
 
+
+# menu widgets
+
+diesease_list = can_api.get_disease()
+
+menu_items = [('Option A', 'a'), ('Option B', 'b'), ('Option C', 'c'), None, ('Help', 'help')]
+menu_button = pn.widgets.MenuButton(name='Dropdown', items=menu_items, button_type='primary')
+pn.Column(menu_button, height=200)
+
 # Callback functions:
 def get_plot(min_patient_count, checkbox_group, width, height):
     layers = ["Diagnosis"] + checkbox_group + ["Therapy"]
@@ -76,12 +85,18 @@ plot_card = pn.Card(
     title="Plot", width=card_width, collapsed=True
 )
 
+menu_card = pn.Column(
+    menu_button,
+    pn.widgets.Select(options = diesease_list),
+    height=200
+)
 # Dashboard layout
 layout = pn.template.FastListTemplate(
     title="The Diagnosis & Therapy Linkage Dashboard",
     sidebar=[
         search_card,
         plot_card,
+        menu_card
     ],
     theme_toggle=False,
     main=[

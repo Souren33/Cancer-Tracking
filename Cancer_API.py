@@ -27,6 +27,15 @@ class CANAPI:
         self.can["Therapy"] = self.can["Therapy"].apply(lambda x: "No_therapy_listed" if x == "" else x)
         return self.can
 
+
+    def get_disease(self):
+       disease_lst =  list(self.can.Diagnosis.unique())
+
+       return disease_lst
+
+
+
+
     def create_age_ranges(self):
         self.can["Age"] = self.can["Age"].astype(int)
         youngest_marker = self.can["Age"].quantile(0.25)
@@ -80,15 +89,14 @@ def main():
 
 
     #formating ages
-    canapi.format_ages("Age")
 
     data = canapi.create_age_ranges()
 
-    print(data)
+    print(data.columns)
 
+    disease_list = canapi.get_disease()
 
-
-
+    print(disease_list)
    #print(canapi.create_age_ranges())
 if __name__ == '__main__':
     main()
