@@ -5,9 +5,20 @@ Author: Souren Prakash, Kuan Chun Chiu, Atharva Nilapwar
 Date: 2024/10/10
 """
 
-import panel as pn
+"""
+File title: Cancer_explore
+
+Description: The backend program that calls the API functions and connects to the panel dashboard
+
+Author: Souren Prakash, Kuan Chun Chiu, Atharva Nilapwar
+
+Date: 2024/10/10
+"""
+
+import pandas as pd
 from Cancer_API import CANAPI
-import sankey as sk
+from sankey_test import multi_layer_sankey
+import panel as pn
 
 # Loads javascript dependencies and configure panel
 pn.extension()
@@ -21,11 +32,12 @@ can_df = can_api.load_can(file_name)
 can_df = can_api.clean_can()
 can_df = can_api.create_age_ranges()
 
-print (can_df.head(15))
+print(can_df.head(15))
 
 # Search widgets
 min_patient_count = pn.widgets.IntSlider(name="Min patient count", start=1, end=5, value=1)
-checkbox_group = pn.widgets.CheckBoxGroup(name="Sankey layer checkbox", value=["Age", "Gender"],
+checkbox_group = pn.widgets.CheckBoxGroup(name="Sankey layer checkbox",
+                                          value=["Age", "Gender"],
                                           options=["Age", "Gender"], inline=True)
 
 # Plot widgets
@@ -34,31 +46,17 @@ height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=1
 
 # Callback functions:
 def get_plot(min_patient_count, checkbox_group, width, height):
-    inter_layers = checkbox_group
-    if len(inter_layers) == 0:
-        group_list = ["Diagnosis", "Therapy"]
-        cancer_df = can_api.group_df(group_list, min_patient_count)
-        fig = sk.two_layer_sankey(cancer_df, "Diagnosis", "Therapy", width=width, height=height)
-    if len(inter_layers) == 1:
-        group_list = ["Diagnosis", inter_layers[0], "Therapy"]
-        cancer_df = can_api.group_df(group_list, min_patient_count)
-        fig = sk.three_layer_sankey(cancer_df, "Diagnosis", inter_layers[0], "Therapy",
-                                    width=width, height=height)
-    if len(inter_layers) == 2:
-        group_list = ["Diagnosis", inter_layers[0], inter_layers[1], "Therapy"]
-        cancer_df = can_api.group_df(group_list, min_patient_count)
-        fig = sk.four_layer_sankey(cancer_df, "Diagnosis", inter_layers[0], inter_layers[1], "Therapy",
-                                   width=width, height=height)
+    layers = ["Diagnosis"] + checkbox_group + ["Therapy"]
+    group_list = layers
+    cancer_df = can_api.group_df(group_list, min_patient_count)
+    fig = multi_layer_sankey(cancer_df, *layers, width=width, height=height)
     return fig
 
 def get_catalog():
     pass
 
-
-
 # Callback bindings
 plot = pn.bind(get_plot, min_patient_count, checkbox_group, width, height)
-# catalog = pn.bind(get_catalog)
 
 # Dashboard widgets card
 card_width = 320
@@ -88,12 +86,13 @@ layout = pn.template.FastListTemplate(
     theme_toggle=False,
     main=[
         pn.Tabs(
-            ("Network", plot),  # Replace None with callback binding
-            ("Associations", None),  # Replace None with callback binding
-            active=0   # Which tab is active by default?
+            ("Network", plot),
+            ("Associations", None),
+            active=0
         )
     ],
     header_background='#a93226'
-).servable()
+)
 
+layout.servable()
 layout.show()
