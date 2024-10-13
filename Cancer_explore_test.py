@@ -55,12 +55,14 @@ def grab_selection(selected_val):
     return []
 
 
-def update_values_dropdown(selected_column):
-    options = grab_selection(selected_column)  # Get unique values from the selected column
-    values_dropdown.options = options
+def update_values_dropdown(selected_column = None):
 
+    if selected_column == "Remove Filter":
+        values_dropdown.options = []
+    else:
+        options = grab_selection(selected_column)  # Get unique values from the selected column
+        values_dropdown.options = options
 
-    return pn.widgets.Select(name='Select Value', options=options)
 """
 menu_items = [('Diagnosis', 'Diagnosis'), ('Age', 'Age'), ('Sex', 'Sex'), ('Treatment', 'Treatment')]
 menu_button = pn.widgets.MenuButton(name='Sorting Categories', items=menu_items, button_type='primary')
@@ -70,15 +72,19 @@ pn.Column(menu_button, height=200)
 
 
 #menu_items =
-columns_dropdown = pn.widgets.Select(name='Select Column', options=list(can_df.columns))
+columns_dropdown = pn.widgets.Select(name='Select Column', options=["Remove Filter"] + list(can_df.columns))
 values_dropdown = pn.widgets.Select(name = 'Select Value', options = [])
 # Callback functions:
 def get_plot(min_patient_count, checkbox_group, width, height, selected_column, selected_val):
-    if selected_column and selected_val:
+    if selected_column == "Remove Filter":
+        filtered_df = can_df
+
+    elif selected_column and selected_val:
      #first want to grab the filtering based on drop down
         filtered_df = can_df[can_df[selected_column] == selected_val]
     else:
         filtered_df = can_df
+
     layers = ["Diagnosis"] + checkbox_group + ["Therapy"]
     group_list = layers
 
