@@ -19,6 +19,7 @@ import pandas as pd
 from Cancer_API import CANAPI
 from sankey_test import multi_layer_sankey
 import panel as pn
+from panel.widgets import Tabulator
 
 # Loads javascript dependencies and configure panel
 pn.extension()
@@ -31,6 +32,9 @@ can_api = CANAPI()
 can_df = can_api.load_can(file_name)
 can_df = can_api.clean_can()
 can_df = can_api.create_age_ranges()
+
+data_table = Tabulator(can_df, pagination='remote', page_size=10, sizing_mode='stretch_width')
+
 
 print(can_df.head(15))
 
@@ -142,6 +146,7 @@ layout = pn.template.FastListTemplate(
         pn.Tabs(
             ("Network", plot),
             ("Associations", None),
+            ("Data Table", data_table),
             active=0
         )
     ],
