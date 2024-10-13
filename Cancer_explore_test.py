@@ -46,33 +46,53 @@ height = pn.widgets.IntSlider(name="Diagram height", start=200, end=2500, step=1
 
 
 # menu widget
-disease_list = can_api.get_disease()
 
-menu_items = [('Disease', 'Disease'), ('Age', 'Age'), ('Sex', 'Sex'), ('Treatment', 'Treatment')]
+
+def grab_selection(selected_val):
+    if selected_val:
+        selection = can_api.get_unique_vals(selected_val)
+        return selection
+    return []
+
+
+def update_values_dropdown(selected_column):
+    options = grab_selection(selected_column)  # Get unique values from the selected column
+    values_dropdown.options = options
+
+
+    return pn.widgets.Select(name='Select Value', options=options)
+"""
+menu_items = [('Diagnosis', 'Diagnosis'), ('Age', 'Age'), ('Sex', 'Sex'), ('Treatment', 'Treatment')]
 menu_button = pn.widgets.MenuButton(name='Sorting Categories', items=menu_items, button_type='primary')
+menu_button_2 = pn.widgets.MenuButton(name = 'Item' )
 pn.Column(menu_button, height=200)
-
-def handle_selection(clicked):
-    return f'You clicked menu item: "{clicked}"'
+"""
 
 
+#menu_items =
+columns_dropdown = pn.widgets.Select(name='Select Column', options=list(can_df.columns))
+values_dropdown = pn.widgets.Select(name = 'Select Value', options = [])
 # Callback functions:
-def get_plot(min_patient_count, checkbox_group, width, height):
+def get_plot(min_patient_count, checkbox_group, width, height, selected_column, selected_val):
+    if selected_column and selected_val:
+     #first want to grab the filtering based on drop down
+        filtered_df = can_df[can_df[selected_column] == selected_val]
+    else:
+        filtered_df = can_df
     layers = ["Diagnosis"] + checkbox_group + ["Therapy"]
     group_list = layers
-    cancer_df = can_api.group_df(group_list, min_patient_count)
+
+    cancer_df = can_api.group_df(group_list, min_patient_count, df=filtered_df)
+
     fig = multi_layer_sankey(cancer_df, *layers, width=width, height=height)
     return fig
-
-def get_plot_dropdown():
-    layers = [""]
-
 
 def get_catalog():
     pass
 
 # Callback bindings
-plot = pn.bind(get_plot, min_patient_count, checkbox_group, width, height)
+plot = pn.bind(get_plot, min_patient_count, checkbox_group, width, height,
+               columns_dropdown.param.value, values_dropdown.param.value)
 
 # Dashboard widgets card
 card_width = 320
@@ -98,11 +118,9 @@ the second drop down allows the different unique values used in the sankey to so
 """
 menu_card = pn.Card(
     pn.Column(
-    menu_button,
-    pn.bind(handle_selection, menu_button.param.clicked),
-    pn.widgets.Select(options = disease_list),
-    height=200
-    ),
+    columns_dropdown,#first dropdown
+    pn.bind(update_values_dropdown, columns_dropdown.param.value),
+        values_dropdown),
     title= "Dropdown", width=card_width, collapsed=True
 )
 # Dashboard layout

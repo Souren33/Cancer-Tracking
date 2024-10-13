@@ -28,10 +28,10 @@ class CANAPI:
         return self.can
 
 
-    def get_disease(self):
-       disease_lst =  list(self.can.Diagnosis.unique())
+    def get_unique_vals(self,selected_col):
+       val_lst = list(self.can[selected_col].unique())
 
-       return disease_lst
+       return val_lst
 
 
 
@@ -54,7 +54,7 @@ class CANAPI:
         self.can["Age"] = self.can["Age"].apply(classify_age)
         return self.can
 
-    def group_df(self, group_list, min_patient_count):
+    def group_df(self, group_list, min_patient_count, df):
         """
           Purpose: Group the df by two desired columns and add a artist_count column. Exclude rows where its artist_count
                    value is less than 20
@@ -62,7 +62,7 @@ class CANAPI:
           Parameter 2: group_list, the list of columns to group by
           Return: artist_df, the df with artist count based on grouping the two entered columns
         """
-        cancer_df = self.can
+        cancer_df = df
         if len(group_list) == 2:
             group_col1, group_col2 = group_list[0], group_list[1]
             cancer_df = cancer_df.groupby([group_col1, group_col2]).size().reset_index(name="Patient_count")
